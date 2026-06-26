@@ -1,0 +1,52 @@
+name: Node.js CI/CD Pipeline
+
+# Yeh pipeline tab chalegi jab code master ya main branch par push hoga
+on:
+  push:
+    branches: [ "master", "main" ]
+
+jobs:
+  # ======== STEP 1: TEST JOB ========
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js 8
+      uses: actions/setup-node@v3
+      with:
+        node-version: '8'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Run Tests
+      # App mein test script nahi hai, isliye hum success message print kar rahe hain
+      run: echo "Dependencies installed successfully! App is ready to build."
+
+  # ======== STEP 2: DEPLOYMENT JOB ========
+  deploy:
+    needs: test # Yeh tabhi chalega jab 'test' pass hoga
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write # GitHub Packages mein Docker image push karne ki ijazat
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        push: true
+        tags: ghcr.io/${{ github.repository }}/nodejs-webapp-express:latest
