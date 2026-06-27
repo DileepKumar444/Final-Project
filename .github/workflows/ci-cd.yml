@@ -19,7 +19,7 @@ jobs:
         node-version: '8'
 
     - name: Install dependencies
-      run: npm install
+      run: nmp install
 
     - name: Run Tests
       # App mein test script nahi hai, isliye hum success message print kar rahe hain
